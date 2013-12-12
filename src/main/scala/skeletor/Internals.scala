@@ -13,7 +13,6 @@ import java.lang.{ Long => JLong }
 import scala.collection.JavaConversions._
 
 object Conversions {
-    implicit def simplekey(s: String): Keyspace = Keyspace(s)
     implicit def keyspaceString(ks: Keyspace): String = ks.name
     implicit def rowString(r: Row): String = r.name
     implicit def columnfamily(cf: ColumnFamily) = cf.name
@@ -123,6 +122,8 @@ case class ColumnFamily(val ks: Keyspace, val name: String) extends LogHelper {
     import me.prettyprint.hector.api.ddl.ComparatorType
     import Conversions._
 
+    val cassandra = ks.cassandra
+
     private lazy val columnFamilyDefinition = HFactory.createColumnFamilyDefinition(ks, name, ComparatorType.UTF8TYPE)
     var isSuper = false
 
@@ -130,36 +131,36 @@ case class ColumnFamily(val ks: Keyspace, val name: String) extends LogHelper {
 
     //get data out of this column family
     def >>(sets: (MultigetSliceQuery[String, String, String]) => Unit, proc: (String, String, String) => Unit) {
-        Cassandra >> (this, sets, proc)
+        cassandra >> (this, sets, proc)
     }
 
     //get data out of this super column family
     def multigetSubSliceQuery(sets: (MultigetSubSliceQuery[String, String, String, String]) => Unit, proc: (String, String, String) => Unit) {
-        Cassandra.multigetSubSliceQuery(this, sets, proc)
+        cassandra.multigetSubSliceQuery(this, sets, proc)
     }
 
     //get top level columns from super column family
     def superSliceQuery(sets: (SuperSliceQuery[String, String, String, String]) => Unit, proc: (String, String, String) => Unit) {
-        Cassandra.superSliceQuery(this, sets, proc)
+        cassandra.superSliceQuery(this, sets, proc)
     }
 
     //get rows out of this column family
     def >>>(sets: (RangeSlicesQuery[String, String, String]) => Unit, proc: (String, String, String) => Unit) {
-        Cassandra >>> (this, sets, proc)
+        cassandra >>> (this, sets, proc)
     }
 
     //get data of this counter column family
     def >#(sets: (MultigetSliceCounterQuery[String, String]) => Unit, proc: (String, String, Long) => Unit) = {
-        Cassandra ># (this, sets, proc)
+        cassandra ># (this, sets, proc)
     }
 
     //get data of this counter column family
     def >%(sets: (CounterQuery[String, String]) => Unit, proc: (Long) => Unit) = {
-        Cassandra >% (this, sets, proc)
+        cassandra >% (this, sets, proc)
     }
 
     def <<(rows: Seq[ColumnNameValue]) = {
-        Cassandra << rows
+        cassandra << rows
     }
 
     def setSuper(superColumn:Boolean = true) = {
@@ -172,33 +173,33 @@ case class ColumnFamily(val ks: Keyspace, val name: String) extends LogHelper {
      *  create the column family
      */
     def create = {
-        Cassandra.cluster.addColumnFamily(columnFamilyDefinition, true)
+        cassandra.cluster.addColumnFamily(columnFamilyDefinition, true)
     }
 
     /*
      * drop the column family from the keyspace
      */
     def delete = {
-        Cassandra.cluster.dropColumnFamily(ks, name, true)
+        cassandra.cluster.dropColumnFamily(ks, name, true)
     }
 
     /*
      * truncate the data from this column family
      */
     def truncate = {
-        Cassandra.cluster.truncate(ks, name)
+        cassandra.cluster.truncate(ks, name)
     }
 }
 
-case class Keyspace(val name: String, val replicationFactor: Int = 1) {
+case class Keyspace(val cassandra: Cassandra, val name: String, val replicationFactor: Int = 1) {
     private lazy val keyspaceDefinition = HFactory.createKeyspaceDefinition(name, classOf[SimpleStrategy].getName(), replicationFactor, Collections.emptyList())
 
     def create = {
-        Cassandra.cluster.addKeyspace(keyspaceDefinition, true)
+        cassandra.cluster.addKeyspace(keyspaceDefinition, true)
     }
 
     def delete = {
-        Cassandra.cluster.dropKeyspace(name, true)
+        cassandra.cluster.dropKeyspace(name, true)
     }
 
     def \(cf: String) = new ColumnFamily(this, cf)

@@ -10,18 +10,10 @@ import me.prettyprint.hector.api.beans.{ Rows => HectorRows, SuperSlice }
 import me.prettyprint.cassandra.model.IndexedSlicesQuery
 import me.prettyprint.hector.api.Serializer
 
-object Cassandra extends LogHelper {
+class Cassandra(val name: String, val servers: String) extends LogHelper {
     //https://github.com/rantav/hector/blob/master/core/src/main/java/me/prettyprint/hector/api/factory/HFactory.java
 
-    var cluster: Cluster = null
-
-    def *(name: String, servers: String) = {
-        cluster = HFactory.getOrCreateCluster(name, servers);
-    }
-
-    def connect(name: String, servers: String) = {
-        *(name, servers)
-    }
+    val cluster = HFactory.getOrCreateCluster(name, servers);
 
     def shutdown() = {
         cluster.getConnectionManager().shutdown()
@@ -236,12 +228,7 @@ object Cassandra extends LogHelper {
         if (counter != null)
             proc(counter.getValue())
     }
-}
 
-trait Cassandra {
-    //https://github.com/rantav/hector/blob/master/core/src/main/java/me/prettyprint/cassandra/service/CassandraHostConfigurator.java
+    def \(keyspace: String, replicationFactor: Int = 1) = new Keyspace(this, keyspace, replicationFactor)
 
-    def ^ = {
-        Cassandra.cluster
-    }
 }

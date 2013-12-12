@@ -6,21 +6,22 @@ import github.joestein.skeletor.Conversions._
 import me.prettyprint.hector.api.{ConsistencyLevelPolicy}
 import github.joestein.skeletor.{CL}
 
-class SkeletorSpec extends Specification with Cassandra{
+class SkeletorSpec extends Specification {
 
-	val TestColumnFamily = "FixtureTestSkeletor" \ "TestColumnFamily" //now setup the initial CF
-	val CounterTestColumnFamily = "FixtureTestSkeletor" \ "CounterTestColumnFamily" //now setup the initial Counter CF
-	val MultiRowTestColumnFamily = "FixtureTestSkeletor" \ "MultiRowTestColumnFamily"
+	val cassandra = new Cassandra("skeletor-spec", "localhost:9160")
 
-	val SuperColumnTestFamily = "FixtureTestSkeletor" \ "SuperColumnTestFamily"
+	val TestColumnFamily = cassandra \ "FixtureTestSkeletor" \ "TestColumnFamily" //now setup the initial CF
+	val CounterTestColumnFamily = cassandra \ "FixtureTestSkeletor" \ "CounterTestColumnFamily" //now setup the initial Counter CF
+	val MultiRowTestColumnFamily = cassandra \ "FixtureTestSkeletor" \ "MultiRowTestColumnFamily"
+
+	val SuperColumnTestFamily = cassandra \ "FixtureTestSkeletor" \ "SuperColumnTestFamily"
 	SuperColumnTestFamily.setSuper()
 
 	doBeforeSpec {
-		Cassandra connect ("skeletor-spec","localhost:9160")
 	}
 
 	doAfterSpec {
-		Cassandra.cluster.getConnectionManager().shutdown();
+		cassandra.shutdown();
 	}
 
 	//create random and unique row, column and value strings for setting and reading to make sure we are dealing with data for this test run
@@ -35,7 +36,7 @@ class SkeletorSpec extends Specification with Cassandra{
 	"Skeletor " should  {
 
 		"be able to create a super column family" in {
-			val ksp = Keyspace("FixtureTestSkeletor")
+			val ksp = Keyspace(cassandra, "FixtureTestSkeletor")
 			val columnFamily = ColumnFamily(ksp, "SuperColumnFamily")
 			columnFamily.setSuper()
 
@@ -76,8 +77,8 @@ class SkeletorSpec extends Specification with Cassandra{
 
 			var rows:Rows = Rows(cv)
 
-			Cassandra.defaultWriteConsistencyLevel = defaultReadConsistencyLevel
-			Cassandra << rows
+			cassandra.defaultWriteConsistencyLevel = defaultReadConsistencyLevel
+			cassandra << rows
 
 			var results = List[String]()
 			def check {
@@ -113,8 +114,8 @@ class SkeletorSpec extends Specification with Cassandra{
 
 			var rows:Rows = Rows(cv1) ++ Rows(cv2)
 
-			Cassandra.defaultWriteConsistencyLevel = defaultReadConsistencyLevel
-			Cassandra << rows
+			cassandra.defaultWriteConsistencyLevel = defaultReadConsistencyLevel
+			cassandra << rows
 
 			var results = Set[String]()
 			def check {
@@ -149,9 +150,9 @@ class SkeletorSpec extends Specification with Cassandra{
 
 			var rows:Rows = Rows(cv) //add the row to the rows object
 
-			Cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
+			cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
 			//println("push the row=" + rowKey + " into Cassandra, batch mutate counter column=" + columnName + " and value=" + columnValue)
-			Cassandra << rows
+			cassandra << rows
 
 			def processRow(r:String, c:String, v:String) = {
 				(r == rowKey) must beTrue
@@ -180,8 +181,8 @@ class SkeletorSpec extends Specification with Cassandra{
 
 			val rows = list.reduce { (rows, newRow) => rows ++ newRow; rows }
 
-			Cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
-			Cassandra << rows
+			cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
+			cassandra << rows
 
 			var resultList = List[String]()
 
@@ -212,9 +213,9 @@ class SkeletorSpec extends Specification with Cassandra{
 			var cv = (col inc)
 			var rows:Rows = Rows(cv) //add the row to the rows object
 
-			Cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
+			cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
 			//println("push the row counter=" + rowKey + " into Cassandra, batch mutate counter column=" + columnName)
-			Cassandra << rows //push the row into Cassandra, batch mutate
+			cassandra << rows //push the row into Cassandra, batch mutate
 
 			def processRow(r:String, c:String, v:Long) = {
 				//println("processRowCounter="+r+"["+c+"]="+v)
@@ -242,9 +243,9 @@ class SkeletorSpec extends Specification with Cassandra{
 			var cv = (col inc)
 			var rows:Rows = Rows(cv) //add the row to the rows object
 
-			Cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
+			cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
 			//println("push the row counter=" + rowKey + " into Cassandra, batch mutate counter column=" + columnName)
-			Cassandra << rows //push the row into Cassandra, batch mutate
+			cassandra << rows //push the row into Cassandra, batch mutate
 
 			def setsGet(cq: CounterQuery[String, String]) {
 				cq.setKey(rowKey) //we want to pull out the row key we just put into Cassandra
@@ -269,9 +270,9 @@ class SkeletorSpec extends Specification with Cassandra{
 			var cv = (col inc 6)
 			var rows:Rows = Rows(cv) //add the row to the rows object
 
-			Cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
+			cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
 			//println("push the row counter=" + rowKey + " into Cassandra, batch mutate counter column=" + columnName)
-			Cassandra << rows //push the row into Cassandra, batch mutate
+			cassandra << rows //push the row into Cassandra, batch mutate
 
 			def setsGet(cq: CounterQuery[String, String]) {
 				cq.setKey(rowKey) //we want to pull out the row key we just put into Cassandra
@@ -296,9 +297,9 @@ class SkeletorSpec extends Specification with Cassandra{
 			var cv = (col dec)
 			var rows:Rows = Rows(cv) //add the row to the rows object
 
-			Cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
+			cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
 			//println("push the row counter=" + rowKey + " into Cassandra, batch mutate counter column=" + columnName)
-			Cassandra << rows //push the row into Cassandra, batch mutate
+			cassandra << rows //push the row into Cassandra, batch mutate
 
 			def setsGet(cq: CounterQuery[String, String]) {
 				cq.setKey(rowKey) //we want to pull out the row key we just put into Cassandra
@@ -323,9 +324,9 @@ class SkeletorSpec extends Specification with Cassandra{
 			var cv = (col dec 7)
 			var rows:Rows = Rows(cv) //add the row to the rows object
 
-			Cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
+			cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
 			//println("push the row counter=" + rowKey + " into Cassandra, batch mutate counter column=" + columnName)
-			Cassandra << rows //push the row into Cassandra, batch mutate
+			cassandra << rows //push the row into Cassandra, batch mutate
 
 			def setsGet(cq: CounterQuery[String, String]) {
 				cq.setKey(rowKey) //we want to pull out the row key we just put into Cassandra
@@ -350,14 +351,14 @@ class SkeletorSpec extends Specification with Cassandra{
 					CL.ANY()
 				}
 
-				Cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
+				cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
 
 				//new default write consistency
 				var defaultWriteConsistencyLevel: ConsistencyLevelPolicy = {
 					CL.QUARUM()
 				}
 
-				Cassandra.defaultWriteConsistencyLevel = defaultWriteConsistencyLevel
+				cassandra.defaultWriteConsistencyLevel = defaultWriteConsistencyLevel
 
 				true must beTrue //TODO: some better test than just everything getting to this point without exception
 			}
@@ -370,9 +371,9 @@ class SkeletorSpec extends Specification with Cassandra{
 					CL.ANY()
 				}
 
-				Cassandra.defaultReadConsistencyLevel = testdefaultReadConsistencyLevel
+				cassandra.defaultReadConsistencyLevel = testdefaultReadConsistencyLevel
 				//println("push the row=" + rowKey + " into Cassandra, batch mutate counter column=" + columnName + " and value=" + columnValue)
-				Cassandra << (rows, CL.ALL())
+				cassandra << (rows, CL.ALL())
 
 				true must beTrue //TODO: some better test than just everything getting to this point without exception
 			}
@@ -387,9 +388,9 @@ class SkeletorSpec extends Specification with Cassandra{
 
 				var rows:Rows = Rows(cv) //add the row to the rows object
 
-				Cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
+				cassandra.defaultReadConsistencyLevel = defaultReadConsistencyLevel
 				//println("push the row=" + rowKey + " into Cassandra, batch mutate counter column=" + columnName + " and value=" + columnValue)
-				Cassandra << rows
+				cassandra << rows
 
 				def processRow(r:String, c:String, v:String) = {
 					(r == rowKey) must beTrue
@@ -410,7 +411,7 @@ class SkeletorSpec extends Specification with Cassandra{
 					(v != columnValue) must beTrue
 				}
 
-				Cassandra delete rows.rows(0)
+				cassandra delete rows.rows(0)
 
 				TestColumnFamily >> (sets, deletedRow) //get data out of Cassandra and process it
 			}
