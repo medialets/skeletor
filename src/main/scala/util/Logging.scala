@@ -1,4 +1,4 @@
-package github.joestein.util
+package com.rpetrich.szkieletor.util
 
 import org.apache.log4j.Logger;
 

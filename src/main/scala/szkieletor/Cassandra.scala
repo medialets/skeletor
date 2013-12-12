@@ -1,9 +1,9 @@
-package github.joestein.skeletor
+package com.rpetrich.szkieletor
 
 import me.prettyprint.hector.api.{ Cluster, Keyspace => HKeyspace }
 import me.prettyprint.hector.api.factory.HFactory
 import me.prettyprint.hector.api.query.{ SuperSliceQuery, MultigetSliceQuery, MultigetSliceCounterQuery, CounterQuery, RangeSlicesQuery, MultigetSubSliceQuery}
-import github.joestein.util.{ LogHelper }
+import com.rpetrich.szkieletor.util.{ LogHelper }
 import Conversions._
 import me.prettyprint.hector.api.query.Query
 import me.prettyprint.hector.api.beans.{ Rows => HectorRows, SuperSlice }

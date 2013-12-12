@@ -1,10 +1,10 @@
 import org.specs._
-import github.joestein.skeletor.{Cassandra, Rows, Keyspace, ColumnFamily}
+import com.rpetrich.szkieletor.{Cassandra, Rows, Keyspace, ColumnFamily}
 import java.util.UUID
 import me.prettyprint.hector.api.query.{MultigetSubSliceQuery, SuperSliceQuery, MultigetSliceQuery, MultigetSliceCounterQuery,CounterQuery,RangeSlicesQuery}
-import github.joestein.skeletor.Conversions._
+import com.rpetrich.szkieletor.Conversions._
 import me.prettyprint.hector.api.{ConsistencyLevelPolicy}
-import github.joestein.skeletor.{CL}
+import com.rpetrich.szkieletor.{CL}
 
 class SkeletorSpec extends Specification {
 

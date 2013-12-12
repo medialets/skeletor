@@ -1,4 +1,4 @@
-package github.joestein.skeletor
+package com.rpetrich.szkieletor
 
 // more info on consitency settings = http://www.datastax.com/docs/0.8/dml/data_consistency
 

@@ -1,10 +1,10 @@
-package github.joestein.skeletor
+package com.rpetrich.szkieletor
 
 import java.util.Collections
 import scala.collection.mutable.ListBuffer
 import org.apache.cassandra.locator.SimpleStrategy
-import github.joestein.skeletor.Conversions.keyspaceString
-import github.joestein.util.LogHelper
+import com.rpetrich.szkieletor.Conversions.keyspaceString
+import com.rpetrich.szkieletor.util.LogHelper
 import me.prettyprint.hector.api.ddl.{ComparatorType, ColumnType}
 import me.prettyprint.hector.api.factory.HFactory
 import me.prettyprint.hector.api.query.{ MultigetSliceQuery, SuperSliceQuery, MultigetSubSliceQuery, MultigetSliceCounterQuery, CounterQuery, RangeSlicesQuery }
